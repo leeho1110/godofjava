@@ -10,6 +10,13 @@ public class ListSample {
         ArrayList<String> strings = new ArrayList<>(100);
 
         // Shallow Copy & Deep copy
+        studyShallowAndDeepCopy();
+
+        // toArray()
+        studyToArray();
+    }
+
+    private static void studyShallowAndDeepCopy() {
         ArrayList<String> shallow = new ArrayList<>();
         shallow.add("shallow");
 
@@ -29,8 +36,9 @@ public class ListSample {
         for (String d : deep) {
             System.out.println("d = " + d);
         }
+    }
 
-        // toArray()
+    private static void studyToArray() {
         ArrayList<String> untilArrayList = new ArrayList<>();
         untilArrayList.add("until");
         String[] toArray = untilArrayList.toArray(new String[0]);
@@ -38,6 +46,5 @@ public class ListSample {
         for (String s : toArray) {
             System.out.println("s = " + s);
         }
-
     }
 }
