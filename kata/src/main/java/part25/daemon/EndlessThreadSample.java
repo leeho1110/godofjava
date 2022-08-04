@@ -1,4 +1,4 @@
-package part25;
+package part25.daemon;
 
 import java.time.LocalTime;
 

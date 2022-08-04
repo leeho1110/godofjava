@@ -3,7 +3,7 @@ package part25;
 import part24.TreeMapSample;
 
 public class RunMultipleThreadsSample {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         RunMultipleThreadsSample sample = new RunMultipleThreadsSample();
         sample.runMultipleThreads();
     }
