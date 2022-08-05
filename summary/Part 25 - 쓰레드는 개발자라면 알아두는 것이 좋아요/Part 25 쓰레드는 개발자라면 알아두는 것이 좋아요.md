@@ -111,11 +111,64 @@
 
 - synchronized는 스레드가 공유되는 자원을 사용할 때 막무가내로 접근하지 않도록 하기 위해서다. 짧게 말하자면 **성(자원)을 여러 침략자(스레드)로부터 온전하게 지키기 위해서**다.
     - 메서드 자체를 synchronized로 선언하는 방법(synchronized methods)과 특정 코드만 감싸는 방법(synchronized statements)이 있다.
-        - 메서드 선언부에 synchronized가 선언되었다는 것은 메서드를 호출해서 수행하는 쓰레드가 딱 1개만 존재한다는 뜻이다.
-        - 예를 들어
+        - 메서드 선언부에 synchronized가 선언되었다는 것은 메서드를 호출해서 수행할 수 있는 쓰레드의 수가 딱 1개라는 의미다.
+        - 이 문제는 쓰레드가 공유하는 값의 상태를 변경될 때 발생한다. 예시로 작성한 계산기 프로그램에서 이러한 **race condition 문제가 발생**한다.
+            
+            ```java
+            public class ModifyAmountThread extends Thread {
+                private CommonCalculate calculate;
+                private boolean addFlag;
+            
+                public ModifyAmountThread(CommonCalculate calculate, boolean addFlag){
+                    this.calculate = calculate;
+                    this.addFlag = addFlag;
+                }
+            
+                public void run(){
+                    for (int i = 0; i < 10000; i++) {
+                        if(addFlag){
+                            calculate.plus(1); // amount += 1
+                        } else {
+                            calculate.minus(1); // amount -= 1
+                        }
+                    }
+                }
+            
+            		public static void main(String[] args) {
+                    CommonCalculate calculate = new CommonCalculate();
+            
+                    ModifyAmountThread amountThread1 = new ModifyAmountThread(calculate,true);
+                    ModifyAmountThread amountThread2 = new ModifyAmountThread(calculate,true);
+            
+                    amountThread1.start();
+                    amountThread2.start();
+            
+                    try {
+                        amountThread1.join();
+                        amountThread2.join();
+            
+                        System.out.println(String.format("Final value is %s", calculate.getAmount())); // 20000보다 작은 값
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }		
+            }
+            ```
+            
+            | amoutThread1 |  | amoutThread2 |  |
+            | --- | --- | --- | --- |
+            | 현재 연산 | amount 값 | 현재 연산 | amount 값 |
+            | amount+value | 1 |  |  |
+            | 더하기 완료 | 1 | amount+value | 1 |
+            | amount 변수에 할당 | 2 | 더하기 완료 | 1 |
+            |  |  | amount 변수에 할당 | 2 |
+            
+            →궁극적으로 amount는 2번의 연산이 수행됐음에도 불구하고 1밖에 더해지지 않는다. `synchronized` 블록은 이 연산이 서로 종료된 이후 각각 수행되도록 제어한다.
+            
+- 하지만 이 경우 전체 메서드 라인이 실행 시 대기하게 된다. 이 경우는 위에서 말한 특정 영역만 synchronized 로 만드는 synchronized statements 방법을 사용하면 된다.
+    - 이 때 쓰레드의 접근을 제어하는 대상이 다르다면 접근을 제어해주는 문지기 객체도 각각 생성해 사용해야한다. 문지기를 한명만 사용한다면 문지기가 관리하는 synchronized 블록을 모두 제한하기 때문이다.
 
 ---
-
 ### 참고자료
 
 - [PHP도 CGI 인가요?](https://kldp.org/node/73386)
