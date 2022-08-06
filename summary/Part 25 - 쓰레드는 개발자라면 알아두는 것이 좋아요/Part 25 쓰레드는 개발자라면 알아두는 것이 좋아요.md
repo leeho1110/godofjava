@@ -34,7 +34,7 @@
         - start()는 스레드가 실행을 시작하게 하는 메서드로써 JVM은 start()가 호출될 때 스레드의 run() 메서드를 호출합니다.
         - 결과적으로 Thread의 start()을 호출한 current 메서드와 run() 메서드를 실행하는 other 메서드, 두 개의 스레드를 동시에 시작합니다. 한 번 이상 start()하는 것은 허용되지 않습니다. 특히 스레드가 실행을 완료한 뒤엔 스레드가 다시 실행되지 않을수도 있습니다.
         - start()는 VM이 생성하거나 설정한 메인 메서드 스레드나 시스템 그룹 스레드들에는 호출되지 않습니다.
-	- start() 메서드는 네이티브 start0() 을 호출하는데, start0() 메서드는 JNI를 통해 OS System call을 호출합니다. 운영체제가 리눅스라면 clone이라는 시스템 콜을 호출하고 이 때 OS 레벨의 스레드를 새롭게 생성하게 됩니다. 이렇게 **생성된 OS 스레드는 자바에서 생성한 사용자 스레드와 일대일로 매핑되어 명령어를 수행**하게 됩니다.
+        - start() 메서드는 네이티브 start0() 을 호출하는데, start0() 메서드는 JNI를 통해 OS System call을 호출합니다. 운영체제가 리눅스라면 clone이라는 시스템 콜을 호출하고 이 때 OS 레벨의 스레드를 새롭게 생성하게 됩니다. 이렇게 **생성된 OS 스레드는 자바에서 생성한 사용자 스레드와 일대일로 매핑되어 명령어를 수행**하게 됩니다.
         
         ```java
         public
@@ -97,7 +97,7 @@
     - 여기서 말하는 속성이란 이름, 우선 순위, 데몬-비데몬 여부를 의미합니다.
     - 상태란 ‘쓰레드의 움직임 순간 포착’입니다.
         - 모두 알다시피 CPU는 한번에 하나의 일만 수행합니다. 여러 개의 쓰레드가 실행될 때에도 마찬가지인데요. 물론 멀티코어라면 동시에 수행될 수 있겠지만 하나의 코어는 하나의 명령어만을 수행된다는 사실에는 변함이 없습니다.
-        - 쓰레드가 어떤 행동을 하고 있느냐에 따라 열거형 클래스 State 클래스를 통해 6개의 상태 *`NEW,* *RUNNABLE,* *BLOCKED,* *WAITING,* *TIMED_WAITING,* *TERMINATED`* 로 구분됩니다.
+        - 쓰레드가 어떤 행동을 하고 있느냐에 따라 열거형 클래스 State 클래스를 통해 쓰레드의 라이프사이클을 표시합니다. *`NEW,* *RUNNABLE,* *BLOCKED,* *WAITING,* *TIMED_WAITING,* *TERMINATED`* 가 있고 이 중 `*NEW, TERMINATED`* 를 제외한 4개가 상태에 해당됩니다.
 - 언급했던 것처럼 쓰레드는 한번에 하나만 실행될 수 있기 때문에 CPU에 의해 실행되는 순서가 존재하며, 속성에 따라 **우선순위**도 존재합니다.
     - 우선순위는 `MIN_PRIORITY(1)`, `NORM_PRIORITY(5)`, `MAX_PRIORITY(10)`의 상수 형태로 존재하고 값이 클수록 우선순위가 높아집니다.
         - 디폴트 값을 유지하는 것이 권장됩니다.
@@ -169,6 +169,71 @@
     - 이 때 쓰레드의 접근을 제어하는 대상이 다르다면 접근을 제어해주는 문지기 객체도 각각 생성해 사용해야한다. 문지기를 한명만 사용한다면 문지기가 관리하는 synchronized 블록을 모두 제한하기 때문이다.
 
 ---
+
+### 쓰레드를 통제하는 메서드들
+
+<p align="center"><img src="img/thread-state.png"></p>
+
+[https://www.uml-diagrams.org/java-thread-uml-state-machine-diagram-example.html](https://www.uml-diagrams.org/java-thread-uml-state-machine-diagram-example.html)
+
+- `getState()`
+    - 쓰레드는 최초 생성되어 실행되기 전의 `NEW`, 종료된 `TERMINATED` 외에 4개의 상태가 있습니다. 이런 쓰레드의 상태를 확인하기 위한 메서드입니다.
+- `join()`
+    - 명령어를 실행하고 있는 쓰레드가 동작을 완료할 때까지 대기하도록 만드는 메서드입니다.
+        - 예를 들어 택배를 발송하는 과정을 예시로 들어보겠습니다.
+            
+            ```java
+            public class SendPost {
+            		public static void main(String[] args) {
+            				System.out.println("LH 택배에 오신 것을 환영합니다");
+            				
+            				WrappingThread wrappingThread = new WrappingThread();
+            				wrappingThread.start(); // run()에는 택배를 포장하는 코드가 있다고 가정
+            				
+            				sendPost(); // 택배를 전송하는 메서드
+            		}
+            }
+            ```
+            
+        - 위 코드에서 WrappingThread 클래스가 포장 작업을 완료할 때까지 sendPost() 메서드가 실행되서는 안됩니다. 포장도 안하고 보낼수는 없으니까요.
+        - 이 때 “WrappingThread의 동작이 완료될 때까지 기다려!” 라고 메인 스레드한테 말해줘야 하겠죠. 이 때 사용되는 메서드가 바로 join()입니다.
+            
+            ```java
+            public class SendPost {
+            		public static void main(String[] args) {
+            				System.out.println("LH 택배에 오신 것을 환영합니다");
+            				
+            				WrappingThread wrappingThread = new WrappingThread();
+            				wrappingThread.start(); // run()에는 택배를 포장하는 코드가 있다고 가정
+            
+            				System.out.println("포장 작업중! 기다려주세요!");
+            				wrappingThread.join();
+            
+            				sendPost(); // 택배를 전송하는 메서드
+            		}
+            }
+            ```
+            
+- `interrupt()`
+    - 수행중인 쓰레드에 정지 요청을 하는 메서드입니다. 위 메서드를 수행하면 `InterruptedException` 을 발생시키며 쓰레드를 중단시킵니다.
+- `checkAccess()`
+    - 수행중인 쓰레드가 자신을 수정할 수 있는 권한이 존재하는지 확인합니다.
+- `isAlive()`
+    - 쓰레드가 현재 살아있는지를 확인합니다.
+- `isInterrupted()`
+    - run() 메서드의 정상적인 종료가 아닌 `interrupt()` 메서드 호출로 인해 종료되었는지를 확인합니다.
+- `interrupted()`
+    - 현재 쓰레드가 중지된 상태인지를 확인합니다.
+- `activeCount()`
+    - 현재 쓰레드가 속한 쓰레드 그룹에서 살아있는 쓰레드가 몇 개인지 반환합니다.
+- `currentThread()`
+    - 현재 수행중인 쓰레드 객체를 반환합니다.
+- `dumpStack()`
+    - 콘솔 창에 현재 쓰레드의 스택 정보를 출력합니다.
+
+---
+
 ### 참고자료
 
 - [PHP도 CGI 인가요?](https://kldp.org/node/73386)
+- [스레드 종류가 참 많죠?](https://www.youtube.com/watch?v=vorIqiLM7jc)
