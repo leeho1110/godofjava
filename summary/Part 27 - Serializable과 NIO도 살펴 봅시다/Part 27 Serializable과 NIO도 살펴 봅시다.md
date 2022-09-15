@@ -26,3 +26,37 @@
 - 이 키워드가 명시된 인스턴스 필드는 직렬화 대상에서 제외됩니다.
     - 예를 들어 패스워드나 보안상 문제가 되는 변수를 객체에 저장해야하는 경우 사용할 수 있습니다.
 
+---
+
+### NIO
+
+- NIO는 지금까지 사용했던 스트림이 아닌 채널과 버퍼 방식을 사용합니다.
+    - 채널은 물건을 처리하는 도매상이고, 버퍼는 도매상에게 물건을 구매해 소비자에게 물건을 판매하는 소매상 역할입니다.
+    - 예제 코드
+        
+        ```java
+        // write
+        FileChannel channel = new FileOutputStream(fileName).getChannel();
+        channel.write(ByteBuffer.wrap(data.getBytes()));
+        channel.close();
+        
+        // read
+        FileChannel channel = new FileInputStream(fileName).getChannel();
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        
+        channel.read(buffer);
+        buffer.flip();
+        
+        while (buffer.hasRemaining()) {
+            System.out.println((char) buffer.get());
+        }
+        
+        channel.close();
+        ```
+        
+        - 파일을 작성하는 경우 FileChannel이 저장할 파일과의 거래루트를 뚫습니다. 이후 ByteBuffer는 실제 물건(data)를 포장해 도매상 역할인 FileChannal에게 전달합니다.
+        - 파일을 읽어오는 경우도 역시 FileChannel이 읽어올 파일과의 거래 루트를 마련합니다. 이후 ByteBuffer는 1024 크기를 갖는 버퍼를 통해 값을 읽어옵니다.
+    - NIO에서 제공하는 Buffer 클래스들은 java.nio.Buffer를 상속해 사용됩니다.
+        - ByteBuffer, CharBuffer, DoubleBuffer 등
+- 핵심은 특정 공간의 버퍼를 마련하고 공간 내에서 위치를 옮기며 파일을 저장하거나 삭제한다는 것입니다.
+    - 파일의 입출력뿐만 아니라 파일 복사, 네트워크 I/O에서도 사용할 수 있습니다.
