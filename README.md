@@ -59,7 +59,7 @@
   
     스택 프레임은 메서드의 지역 변수를 저장하는 Local Variable Section, 연산에 이용되는 데이터 및 결과를 저장하는 Operand Stack, Frame Data로 이루어져 있습니다. 최상단 스택 프레임을 current frame이라고 부릅니다. Local Variable Section는 0-Base 배열로 구성되어있고 로컬 변수와 메서드 파라미터가 저장됩니다. Operand Stack에는 연산에 사용되는 값들이 저장됩니다. Frame Data에는 다른 클래스를 참조하거나 메서드를 수행할 때 Constant Pool Resolution, Normal Method Return, Exception Dispatch가 있습니다.
     
-- ***Q. 자바에서 0.1+0.2는 0.30...4가 나옵니다. 즉 컴퓨터는 소숫점 계산을 제대로 하지 못합니다. 그 이유가 무엇일까요?
+- ***Q. 자바에서 0.1+0.2는 0.30...4가 나옵니다. 즉 컴퓨터는 소숫점 계산을 제대로 하지 못합니다. 그 이유가 무엇일까요?***
 
   double, long, float 계산 시 부동 소수점을 표현하기 위한 IEEE 754를 사용하기 때문입니다.
   
