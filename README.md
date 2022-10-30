@@ -193,15 +193,15 @@
 
 ### Q&A: String class
 
-	- ***Q. String 클래스는 어떤 자료형을 사용해 문자를 저장하나요?***
+- ***Q. String 클래스는 어떤 자료형을 사용해 문자를 저장하나요?***
 	
-		Java 8까지의 `char`형은 UTF-16기반의 2byte를 참조했습니다. 따라서 영어를 사용하더라도 기본적으로 2byte를 사용했죠. 하지만 Java 9부터는 문자열에 따라 Latin-1(1byte)와 UTF-16(2byte)로 나누어지며, byte 배열을 사용해 저장하도록 변경됐습니다. 이 때문에 Java 9부터는 char 연산을 수행하는 클래스가 `StringLatin1` 클래스와 `StringUTF16` 클래스로 나눠지게 됐습니다. 관련 내용은 [JEP 254에 명시된 Compact String 자료](https://openjdk.org/jeps/254)를 통해 확인할 수 있습니다.
+	Java 8까지의 `char`형은 UTF-16기반의 2byte를 참조했습니다. 따라서 영어를 사용하더라도 기본적으로 2byte를 사용했죠. 하지만 Java 9부터는 문자열에 따라 Latin-1(1byte)와 UTF-16(2byte)로 나누어지며, byte 배열을 사용해 저장하도록 변경됐습니다. 이 때문에 Java 9부터는 char 연산을 수행하는 클래스가 `StringLatin1` 클래스와 `StringUTF16` 클래스로 나눠지게 됐습니다. 관련 내용은 [JEP 254에 명시된 Compact String 자료](https://openjdk.org/jeps/254)를 통해 확인할 수 있습니다.
 	
-		계기는 JVM 내부의 힙 메모리의 대부분을 String 자료형이 사용하며 대부분 영어로 작성되어 있기 때문에 굳이 UTF-16을 사용해 1바이트를 낭비하지말자는 것입니다. Java 9부터 새롭게 생성되는 String 클래스는 문자열의 내용에 따라 ISO-8859-1/Latin-1(문자당 1바이트) 또는 UTF-16(문자당 2바이트)으로 인코딩된 문자를 저장합니다. String 클래스는 이를 저장하기 위해 `coder`와  *`COMPACT_STRINGS`* 인스턴스 변수를 통해 갖고 있습니다. 
+	계기는 JVM 내부의 힙 메모리의 대부분을 String 자료형이 사용하며 대부분 영어로 작성되어 있기 때문에 굳이 UTF-16을 사용해 1바이트를 낭비하지말자는 것입니다. Java 9부터 새롭게 생성되는 String 클래스는 문자열의 내용에 따라 ISO-8859-1/Latin-1(문자당 1바이트) 또는 UTF-16(문자당 2바이트)으로 인코딩된 문자를 저장합니다. String 클래스는 이를 저장하기 위해 `coder`와  *`COMPACT_STRINGS`* 인스턴스 변수를 통해 갖고 있습니다. 
 	
-		- *** Q. StringUTF16, StringLatin1은 어떻게 다른가요?***
+	- ***Q. StringUTF16, StringLatin1은 어떻게 다른가요?***
 	
-			`hashcode(byte[] value)` 메서드 내부 구현이 다릅니다. `StringfUTF16` 클래스에서는 인자로 들어온 바이트 배열 길이에 우측 쉬프트 연산을 1번 취한 뒤, 해당 값만큼 배열을 순회하며 `h = 31 * h + getChar(value, idx);` 연산을 수행한 뒤 반환합니다. 반면 `StringLatin1`에서는 바이트 배열(인자)를 순회하며 `h = 31 * h + (v & 0xff);` 연산을 수행합니다. 여기서 Oxff(255)와 AND 연산을 수행하는 이유는 더해주는 값을 양수로 보장(음수는 8비트 기준 MSB가 1, 여기에 255(11111111) AND 연산을 수행하면 MSB가 0으로 변경)하기 위함입니다. 
+		`hashcode(byte[] value)` 메서드 내부 구현이 다릅니다. `StringfUTF16` 클래스에서는 인자로 들어온 바이트 배열 길이에 우측 쉬프트 연산을 1번 취한 뒤, 해당 값만큼 배열을 순회하며 `h = 31 * h + getChar(value, idx);` 연산을 수행한 뒤 반환합니다. 반면 `StringLatin1`에서는 바이트 배열(인자)를 순회하며 `h = 31 * h + (v & 0xff);` 연산을 수행합니다. 여기서 Oxff(255)와 AND 연산을 수행하는 이유는 더해주는 값을 양수로 보장(음수는 8비트 기준 MSB가 1, 여기에 255(11111111) AND 연산을 수행하면 MSB가 0으로 변경)하기 위함입니다. 
 	
 	- ***Q. StringBuilder, StringBuffer에 대해서 설명해주세요.***
 	
