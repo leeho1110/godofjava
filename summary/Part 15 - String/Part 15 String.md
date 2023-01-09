@@ -34,12 +34,12 @@ String 클래스에 대해 알아봅니다.
 - 만약 String이 불변 객체가 아니라면 위 케이스들에서 치명적인 보안 문제가 발생합니다.
     - 예를 들어 사용자가 시스템의 특정 파일에 접근할 수 있는 권한을 받았다고 가정하겠습니다. 이 때 String이 변경 가능하다면 권한을 가진 채로 경로를 변경해 접근해버릴지도 모릅니다. 이는 중대한 보안 문제를 일으킵니다.
     - 네트워크, 데이터베이스와 같은 시스템 연결에서도 문자열 값의 변경은 이러한 보안 위협을 발생시킵니다. 변경 가능한 String 클래스는 String 타입의 매개인자를 사용하는 Reflection에서도 보안의 영향을 끼칠 수 있습니다.
-1. **Use of String in Class Loading Mechanism**
+3. **Use of String in Class Loading Mechanism**
     - String 클래스는 클래스 로딩 메커니즘 안에서도 많이 사용됩니다. 만약 String이 변경 가능하다면 클래스 로딩 시점에 악의적으로 로드되는 클래스명을 변경할 수 있습니다. 예를 들면 java.io.Reader를 com.unknown.DataStolenReader처럼 말이죠. String 클래스를 불변으로 만드는 것을 통해 우린 JVM이 올바른 클래스를 로드하는지에 대해 걱정하지 않아도 됩니다.
-2. ****Multithreading Benefits****
+4. ****Multithreading Benefits****
     - 자바에서 동시성 및 멀티스레딩은 핵심 중에 핵심입니다. 따라서 String 객체를 멀티스레딩 환경에서 어떻게 보호할 수 있는지 꼭 필요한 연구과제였습니다. String 클래스는 앞서 말했듯 설계 단계부터 사용빈도가 아주 높을 것으로 예상되었습니다. 따라서 차라리 애초에 불변으로 만들어 동기화에 대한 이슈를 걱정하지 않고 사용하도록 만들었습니다.
         - 불변이라는 간단한 특징 하나로 자연스럽게 읽기만 가능하다는 특징을 가지기 때문에 복잡하고 오류가 발생하기 쉬운 동시성 코드들이 훨씬 쉬워집니다.
-3. ****Optimization and Performance(Caching)****
+5. ****Optimization and Performance(Caching)****
     - String 클래스는 불변임을 보장하기 때문에 hashcode() 메서드가 호출될 경우 해당 값을 캐싱해놓았다가 반환합니다.
     - 이는 String이 Hashtable, HashMap과 같은 해시 기반 컬렉션에서 키로 사용될 때 성능의 향상을 가능케 합니다.
         - HashMap의 키가 무조건 불변해야한다는 제약사항은 없지만 키가 변경 가능한 객쳋인 것보다 훨씬 안전하게 사용할 수 있습니다.
