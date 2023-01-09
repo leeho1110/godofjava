@@ -33,4 +33,3 @@
 - LinkedList는 List 외에도 Queue ← Deque(Double Ended Queue) 인터페이스도 구현합니다.
     - Deque는 Queue에서 맨 앞, 맨 뒤에 값을 넣거나 빼는 작업을 용이하게 하도록 만든 인터페이스입니다.
         - Queue의 주요 메서드는 add, offer, remove, poll 등이 있습니다. Deque는 addFirst, addLast, offerFirst, offerLast, removeFirst, removeLast, pollFirst, pollLast 등의 메서드를 갖습니다.
-        -
